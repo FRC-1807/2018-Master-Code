@@ -67,7 +67,7 @@ public class Robot extends IterativeRobot {
 	Talon leftBack;
 	Talon rightFront;
 	Talon rightBack;
-	DifferentialDrive bigamoghdick;
+	DifferentialDrive chassis;
 	SpeedControllerGroup leftAmogh;
 	SpeedControllerGroup rightAmogh;
 	public static int LF;
@@ -115,7 +115,7 @@ public class Robot extends IterativeRobot {
 		rightBack = new Talon(RB);
 		leftAmogh = new SpeedControllerGroup(leftFront, leftBack);
 		rightAmogh = new SpeedControllerGroup(rightFront, rightBack);
-		bigamoghdick = new DifferentialDrive(leftAmogh, rightAmogh);
+		chassis = new DifferentialDrive(leftAmogh, rightAmogh);
 
 		//Pneumatics
 		/*compressor = new Compressor(0);
@@ -168,7 +168,7 @@ public class Robot extends IterativeRobot {
 			playing = true;
 			while(playing){
 				if(play_counter <= movementLinear.size() - 1) {
-					bigamoghdick.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
+					chassis.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
 					play_counter++;
 				} else {
 					playing = false;
@@ -265,7 +265,7 @@ public class Robot extends IterativeRobot {
 
 		if(playing){
 			if(play_counter <= movementLinear.size() - 1) {
-				bigamoghdick.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
+				chassis.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
 				play_counter++;
 			} else {
 				playing = false;
