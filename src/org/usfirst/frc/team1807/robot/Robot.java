@@ -68,8 +68,8 @@ public class Robot extends IterativeRobot {
 	Talon rightFront;
 	Talon rightBack;
 	DifferentialDrive chassis;
-	SpeedControllerGroup leftAmogh;
-	SpeedControllerGroup rightAmogh;
+	SpeedControllerGroup leftAMOGH;
+	SpeedControllerGroup rightAMOGH;
 	public static int LF;
 	public static int LB;
 	public static int RB;
@@ -113,14 +113,14 @@ public class Robot extends IterativeRobot {
 		leftBack = new Talon(LB);
 		rightFront = new Talon(RF);
 		rightBack = new Talon(RB);
-		leftAmogh = new SpeedControllerGroup(leftFront, leftBack);
-		rightAmogh = new SpeedControllerGroup(rightFront, rightBack);
-		chassis = new DifferentialDrive(leftAmogh, rightAmogh);
+		leftAMOGH = new SpeedControllerGroup(leftFront, leftBack);
+		rightAMOGH = new SpeedControllerGroup(rightFront, rightBack);
+		chassis = new DifferentialDrive(leftAMOGH, rightAMOGH);
 
 		//Pneumatics
 		/*compressor = new Compressor(0);
-		leftRampAmogh = new DoubleSolenoid(6, 7);
-		rightRampAmogh = new DoubleSolenoid(4, 5);
+		leftRampAMOGH = new DoubleSolenoid(6, 7);
+		rightRampAMOGH = new DoubleSolenoid(4, 5);
 		psense = new PressureSensor(A_PSENSE);*/
 
 		//Resets counting variables and default booleans
