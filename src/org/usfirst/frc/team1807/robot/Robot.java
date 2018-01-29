@@ -33,7 +33,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The main, what will be finalized code for the 2018 FIRST Power Up Game.
- * @author - Joey & Peter
+ * @author - Joey, Peter and Friends
  * @since - we been stunting on niggas
  */
 public class Robot extends IterativeRobot {
@@ -166,15 +166,6 @@ public class Robot extends IterativeRobot {
 			//Error catcher
 		} else if(autoSelected == recordingAuto){
 			playing = true;
-			while(playing){
-				if(play_counter <= movementLinear.size() - 1) {
-					chassis.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
-					play_counter++;
-				} else {
-					playing = false;
-					play_counter = 0;
-				}
-			}
 		} else {
 			System.out.println("Failed to choose auto position");
 		}
@@ -185,7 +176,16 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		//eat some balls
+		SmartDashboard.putBoolean("Playing back: ", playing);
+		if(playing){
+			if(play_counter <= movementLinear.size() - 1) {
+				chassis.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
+				play_counter++;
+			} else {
+				playing = false;
+				play_counter = 0;
+			}
+		}
 	}
 	
 	/**
