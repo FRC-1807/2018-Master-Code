@@ -7,6 +7,11 @@
 
 package org.usfirst.frc.team1807.robot;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
@@ -237,7 +242,7 @@ public class Robot extends IterativeRobot implements Constants{
 		
 		elevator.set(elevator_speed);
 		
-		/*//RECORDING
+		//RECORDING
 		if(manip.getRawButtonPressed(7)){
 			recording = true;
 		}
@@ -307,7 +312,7 @@ public class Robot extends IterativeRobot implements Constants{
 				play_counter = 0;
 			}
 		}
-		*/
+		
 		
 	}
 
