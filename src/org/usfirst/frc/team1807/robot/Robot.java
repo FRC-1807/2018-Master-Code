@@ -38,18 +38,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends IterativeRobot implements Constants{
 
 	private SendableChooser<String> chooser;
+	SendableChooser<String> lineChooser;
 	private String autoSelected;
 	private String gameData;
 	char position;
+	String auto;
 
 	ArrayList<Double> movementLinear;
 	ArrayList<Double> movementRotate;
 	boolean recording;
 	boolean playing;
 	boolean saving;
-	boolean elevator_switch;
+	int elevator_moving;
 	int play_counter;
-	int elevator_speed;
+	boolean moveElevator;
+	boolean crossLine;
 
 	Joystick manip;
 	Joystick samIsUseless;
@@ -60,8 +63,10 @@ public class Robot extends IterativeRobot implements Constants{
 	Talon rightFront;
 	Talon rightBack;
 	Honda honda;
-	Servo servo = new Servo(5);
-	
+	Talon collection;
+	Talon hinge;
+
+
 	Compressor compressor;
 	DoubleSolenoid leftAmogh;
 	DoubleSolenoid rightAmogh;
@@ -85,20 +90,25 @@ public class Robot extends IterativeRobot implements Constants{
 		chooser.addDefault("Center", centerAuto);
 		chooser.addObject("Right", rightAuto);
 		chooser.addObject("Left", leftAuto);
-		chooser.addObject("Teleop Recorded", recordingAuto);
+		chooser.addObject("Dont fucking move", DONTMOVE);
+		lineChooser = new SendableChooser<>();
+		lineChooser.addDefault("Cross Line", doLine);
+		lineChooser.addObject("No Line", noLine);
 
 		//Joysticks and other controllers
 		manip = new Joystick(manipPort);
 		samIsUseless = new Joystick(joyPort);
 
 		//Motor controllers
-		//elevator = new Talon(ELEVATOR);
+		elevator = new Talon(ELEVATOR);
 		leftFront = new Talon(LF);
 		leftBack = new Talon(LB);
 		rightFront = new Talon(RF);
 		rightBack = new Talon(RB);
 		honda = new Honda(leftFront, leftBack, rightFront, rightBack);
-		
+		collection = new Talon(6);
+		hinge = new Talon(4);
+
 		//Pneumatics and sensors
 		compressor = new Compressor(COMPRESSOR_CAN);
 		leftAmogh = new DoubleSolenoid(6, 7);
@@ -113,11 +123,11 @@ public class Robot extends IterativeRobot implements Constants{
 		//block_detector = new Ultrasonic(D_ULTRA1_PING, D_ULTRA1_ECHO);
 		//honda.setUltra(D_ULTRA2_PING, D_ULTRA2_ECHO);
 		pot = new AnalogPotentiometer(A_POT);
-		
+
 		//Resets counting variables and default booleans
 		recording = false;
 		playing = false;
-		elevator_speed = 0;
+		elevator_moving = 0;
 
 		movementLinear = new ArrayList<Double>();
 		movementRotate = new ArrayList<Double>();
@@ -128,41 +138,66 @@ public class Robot extends IterativeRobot implements Constants{
 	 */
 	@Override
 	public void autonomousInit() {
+		auto = "amogh";
 		autoSelected = chooser.getSelected();
+		String lineSelected = lineChooser.getSelected(); 
 		gameData = DriverStation.getInstance().getGameSpecificMessage().toUpperCase();
 		position = gameData.charAt(0);
 		playing = false;
 		play_counter = 0;
 
+		if(lineSelected == doLine) {
+			crossLine = true;
+			playing = false;
+		} else {
+			crossLine = false;
+			playing = true;
+		}
+
+		if(autoSelected == DONTMOVE) {
+			playing = false;
+		} else if(crossLine) {
+			playing = true;
+			auto = "cross_line";
+		}
 		//Left auto
-		if(autoSelected == leftAuto) {
+		else if(autoSelected == leftAuto) {
 			if(position == 'L'){
-				driveTo(168, 0.75);
-				turnTo(90); //turn 90 degrees right
-				//shit out the box
+				auto = "left_switch_left";
 			} else {
-				driveTo(200, 0.75);
+				auto = "left_switch_right";
 			}
 			//Right auto
 		} else if(autoSelected == rightAuto) {
 			if(position == 'L'){
-				//if switch is left
+				auto = "right_switch_left";
 			} else {
-				driveTo(200, 0.75);
+				auto = "right_switch_right";
 			}
 			//Center auto
 		} else if(autoSelected == centerAuto) {
 			if(position == 'L'){
-				//if switch is left
+				auto = "center_switch_left";
 			} else {
-				//if switch is right
+				auto = "center_switch_right";
 			}
 			//Error catcher
-		} else if(autoSelected == recordingAuto){
-			playing = true;
 		} else {
 			System.out.println("Failed to choose auto position");
+			playing = false;
 		}
+
+		try {
+			FileInputStream readfilelin = new FileInputStream("/home/lvuser/lin" + auto + ".ser");
+			FileInputStream readfilerot = new FileInputStream("/home/lvuser/rot" + auto + ".ser");
+			ObjectInputStream in = new ObjectInputStream(readfilelin);
+			movementLinear = (ArrayList<Double>) in.readObject();
+			in = new ObjectInputStream(readfilerot);
+			movementRotate = (ArrayList<Double>) in.readObject();
+		} catch (Exception i){
+			i.printStackTrace();
+		}
+
 	}
 
 	/**
@@ -173,6 +208,7 @@ public class Robot extends IterativeRobot implements Constants{
 		SmartDashboard.putNumber("Ultrasonic range: ", honda.getUltra());
 		//For playing recorded auto
 		SmartDashboard.putBoolean("Playing back: ", playing);
+
 		if(playing){
 			if(play_counter <= movementLinear.size() - 1) {
 				honda.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
@@ -180,7 +216,12 @@ public class Robot extends IterativeRobot implements Constants{
 			} else {
 				playing = false;
 				play_counter = 0;
+				if(moveElevator) {
+					elevatorAuto();
+				}
 			}
+		} else {
+			honda.stopMotor();
 		}
 	}
 
@@ -210,38 +251,29 @@ public class Robot extends IterativeRobot implements Constants{
 		SmartDashboard.putNumber("Left: ", leftEnc.get());
 		SmartDashboard.putNumber("Right: ", rightEnc.get());
 		SmartDashboard.putNumber("Gyroscope: ", gyro.getAngle());
-		
-		if(manip.getRawButton(1)){
-			servo.set(1);
-		} else {
-			servo.setDisabled();
+
+		if(manip.getRawButtonPressed(5)) {
+			elevator_moving = 1;
+		} else if (manip.getRawButtonPressed(3)) {
+			elevator_moving = -1;
 		}
-		
-		if(manip.getRawButton(1)){
-			gyro.reset();
-			leftEnc.reset();
-			rightEnc.reset();
+
+		if(elevator_moving == 1) {
+			if(elevatorTo(top)) {
+				elevator_moving=0;
+			}
+			elevatorTo(top);
+		} else if (elevator_moving == 0) {
+			elevator.set(0);
+		} else if (elevator_moving == -1) {
+			if(elevatorTo(bottom)) {
+				elevator_moving=0;
+			}
+			elevatorTo(bottom);
 		}
-		
-		int pov_angle = manip.getPOV();
-		if(pov_angle > 180){
-			pov_angle = 180-pov_angle;
-		}
-		
-		if(elevator_speed == 0){
-			elevator_switch = true;
-		}
-		
-		if(pov_angle >= -90 && pov_angle <= 90 && elevator_speed <= 1 && elevator_switch){
-			elevator_switch = false;
-			elevator_speed++;
-		} else if (pov_angle > 90 && pov_angle < 90 && elevator_speed >= -1 && elevator_switch){
-			elevator_switch = false;
-			elevator_speed--;
-		}
-		
-		elevator.set(elevator_speed);
-		
+
+
+
 		//RECORDING
 		if(manip.getRawButtonPressed(7)){
 			recording = true;
@@ -312,24 +344,20 @@ public class Robot extends IterativeRobot implements Constants{
 				play_counter = 0;
 			}
 		}
-		
-		
+
+
 	}
 
-	public boolean elevatorTo(double degrees, boolean inAuto){
+	public boolean elevatorTo(double degrees){
 		double wiggle = 0.25;
-		if(inAuto){
-			return false;
+		if(pot.get() > degrees+wiggle){
+			//elevator.set(-.5);
+		} else if (pot.get() < degrees-wiggle){
+			//elevator.set(.5);
 		} else {
-			if(pot.get() > degrees+wiggle){
-				//elevator.set(-.5);
-			} else if (pot.get() < degrees-wiggle){
-				//elevator.set(.5);
-			} else {
-				return true;
-			}
-			return false;
+			return true;
 		}
+		return false;
 	}
 
 	public boolean driveTo(double distanceInches, double speed){
@@ -349,6 +377,25 @@ public class Robot extends IterativeRobot implements Constants{
 		return true;
 	}
 
+	public void elevatorAuto() {
+		int hingeTimer = 30;
+		while(!elevatorTo(top)) {
+			hingeTimer--;
+			if(hingeTimer > 0) {
+				hinge.set(-1);
+			} else {
+				hinge.set(0);
+			}
+		}
+		int shootingTimer = 60;
+		while(shootingTimer > 0) {
+			shootingTimer--;
+			collection.set(.4);
+		}
+		collection.set(0);
+	}
+
+	/*
 	public boolean turnTo(double degrees){
 		double wiggle = 3;
 		double angle = 0;
@@ -367,21 +414,5 @@ public class Robot extends IterativeRobot implements Constants{
 		honda.setReversed(false);
 		return true;
 	}
-	
-	public void encoderSpin(double degrees){
-		
-	}
-	
-	public void spinXTimes(RedbirdEncoder encoder, double spins, boolean isRight){
-		encoder.reset();
-		if(!isRight){
-			honda.setReversed(true);
-		}
-		while(encoder.get() < spins){
-			honda.odyssey(0, 0.25);
-		}
-		encoder.reset();
-		honda.stopMotor();
-		honda.setReversed(false);
-	}
+	 */
 }
