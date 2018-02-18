@@ -7,7 +7,7 @@ public interface Constants {
 	public static int LB = 8;
 	public static int RB = 9;
 	public static int RF = 10;
-	public static int ELEVATOR = 1;
+	//public static int ELEVATOR = 1;
 	public static int LEFTSOURCEA = 1;
 	public static int LEFTSOURCEB = 2;
 	public static int RIGHTSOURCEA = 3;
@@ -43,5 +43,4 @@ public interface Constants {
 	public static int D_ULTRA2_ECHO = 4;
 	
 	//Buttons
-	public static int ELEVATOR_ = ;
 }

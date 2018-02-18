@@ -7,11 +7,6 @@
 
 package org.usfirst.frc.team1807.robot;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
@@ -22,6 +17,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Ultrasonic;
@@ -59,7 +55,8 @@ public class Robot extends IterativeRobot implements Constants{
 	Talon rightFront;
 	Talon rightBack;
 	Honda honda;
-
+	Servo servo = new Servo(5);
+	
 	Compressor compressor;
 	DoubleSolenoid leftAmogh;
 	DoubleSolenoid rightAmogh;
@@ -70,7 +67,7 @@ public class Robot extends IterativeRobot implements Constants{
 	RedbirdEncoder rightEnc;
 	RedbirdEncoder leftEnc;
 	ADXRS450_Gyro gyro;
-	Ultrasonic block_detector;
+	//Ultrasonic block_detector;
 	Potentiometer pot;
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -90,7 +87,7 @@ public class Robot extends IterativeRobot implements Constants{
 		samIsUseless = new Joystick(joyPort);
 
 		//Motor controllers
-		elevator = new Talon(ELEVATOR);
+		//elevator = new Talon(ELEVATOR);
 		leftFront = new Talon(LF);
 		leftBack = new Talon(LB);
 		rightFront = new Talon(RF);
@@ -108,8 +105,8 @@ public class Robot extends IterativeRobot implements Constants{
 		rightEnc = new RedbirdEncoder(RIGHTSOURCEA, RIGHTSOURCEB);
 		camera = CameraServer.getInstance().startAutomaticCapture(0);
 		gyro = new ADXRS450_Gyro();
-		block_detector = new Ultrasonic(D_ULTRA1_PING, D_ULTRA1_ECHO);
-		honda.setUltra(D_ULTRA2_PING, D_ULTRA2_ECHO);
+		//block_detector = new Ultrasonic(D_ULTRA1_PING, D_ULTRA1_ECHO);
+		//honda.setUltra(D_ULTRA2_PING, D_ULTRA2_ECHO);
 		pot = new AnalogPotentiometer(A_POT);
 		
 		//Resets counting variables and default booleans
@@ -208,6 +205,12 @@ public class Robot extends IterativeRobot implements Constants{
 		SmartDashboard.putNumber("Left: ", leftEnc.get());
 		SmartDashboard.putNumber("Right: ", rightEnc.get());
 		SmartDashboard.putNumber("Gyroscope: ", gyro.getAngle());
+		
+		if(manip.getRawButton(1)){
+			servo.set(1);
+		} else {
+			servo.setDisabled();
+		}
 		
 		if(manip.getRawButton(1)){
 			gyro.reset();
@@ -314,9 +317,9 @@ public class Robot extends IterativeRobot implements Constants{
 			return false;
 		} else {
 			if(pot.get() > degrees+wiggle){
-				elevator.set(-.5);
+				//elevator.set(-.5);
 			} else if (pot.get() < degrees-wiggle){
-				elevator.set(.5);
+				//elevator.set(.5);
 			} else {
 				return true;
 			}
