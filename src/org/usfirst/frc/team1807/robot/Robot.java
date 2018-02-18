@@ -33,7 +33,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 /**
  * The main, what will be finalized code for the 2018 FIRST Power Up Game.
  * @author - Joey, Peter and Friends
- * @since - we been stunting on bitches
+ * @since - we been stunting on niggas
  */
 public class Robot extends IterativeRobot implements Constants{
 
