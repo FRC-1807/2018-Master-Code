@@ -48,8 +48,9 @@ public class Robot extends IterativeRobot implements Constants{
 	char position;
 	String auto;
 
-	ArrayList<Double> movementLinear;
-	ArrayList<Double> movementRotate;
+	ArrayList<Double> movementLinear = new ArrayList<Double>();
+	ArrayList<Double> movementRotate = new ArrayList<Double>();
+	ArrayList<Double> movementCol = new ArrayList<Double>();
 	boolean recording;
 	boolean playing;
 	boolean saving;
@@ -91,8 +92,12 @@ public class Robot extends IterativeRobot implements Constants{
 
 	boolean leftrampup = false;
 	boolean rightrampup = false;
-	
+
 	boolean reversedDrive = false;
+	
+	boolean poopstart = false;
+	
+	int pooptimer = 0;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -100,6 +105,8 @@ public class Robot extends IterativeRobot implements Constants{
 	 */
 	@Override
 	public void robotInit() {
+		
+		
 
 		//Adds choices to SmartDashboard
 		chooser = new SendableChooser<>();
@@ -150,12 +157,15 @@ public class Robot extends IterativeRobot implements Constants{
 
 		movementLinear = new ArrayList<Double>();
 		movementRotate = new ArrayList<Double>();
+		movementCol = new ArrayList<Double>();
 
 		honda.setMaxOutput(.6);
 		compressor.stop();
 
 		leftrampup=false;
 		rightrampup=false;
+		
+		honda.setSafetyEnabled(false);
 
 	}
 
@@ -164,7 +174,32 @@ public class Robot extends IterativeRobot implements Constants{
 	 */
 	@Override
 	public void autonomousInit() {
+		
+		movementLinear.clear();
+		movementRotate.clear();
+		try {
+			FileInputStream readfilelin = new FileInputStream("/home/lvuser/lin" + SAVED_NAME + ".ser");
+			FileInputStream readfilerot = new FileInputStream("/home/lvuser/rot" + SAVED_NAME + ".ser");
+			ObjectInputStream in = new ObjectInputStream(readfilelin);
+			movementLinear = (ArrayList<Double>) in.readObject();
+			in = new ObjectInputStream(readfilerot);
+			movementRotate = (ArrayList<Double>) in.readObject();
+		} catch (Exception i){
+			i.printStackTrace();
+		}
+		
 		compressor.stop();
+		pooptimer=0;
+		
+		recording = false;
+		//playing = false;
+		saving = false;
+		poopstart=false;
+		//elevatorAuto();
+		
+		playing=true;
+		collection.set(0);
+		
 		/*auto = "amogh";
 		autoSelected = chooser.getSelected();
 		String lineSelected = lineChooser.getSelected(); 
@@ -232,15 +267,60 @@ public class Robot extends IterativeRobot implements Constants{
 	/**
 	 * This function is called periodically during autonomous.
 	 */
-	
-	
-	
-	
+
+
+
+
 	@Override
 	public void autonomousPeriodic() {
 
-		compressor.stop();
-		honda.arcadeDrive(.6, 0);
+		
+		SmartDashboard.putNumber("pottttt: ", pot.get());
+		
+		if(playing){
+			if(play_counter <= movementLinear.size() - 1) {
+				honda.arcadeDrive(movementLinear.get(play_counter), 0);
+				play_counter++;
+			} else {
+				playing = false;
+				play_counter = 0;
+			}
+		} else {
+			
+			if(!poopstart) {
+				elevatorTo(.36);
+				if(elevatorTo(.36)) {
+					poopstart = true;
+					pooptimer=40;
+				}
+			}
+		}
+		
+		
+		if(pooptimer > 0) {
+			if(pooptimer==1) {
+				pooptimer=-3;
+			}
+			pooptimer--;
+			leftFront.set(-.3);
+			leftBack.set(-.3);
+			rightFront.set(.3);
+			rightBack.set(.3);
+			
+		} else if (pooptimer<0 && pooptimer >-30){
+			pooptimer--;
+			collection.set(.25);
+			leftFront.set(0);
+			leftBack.set(0);
+			rightFront.set(0);
+			rightBack.set(0);
+		} else if (pooptimer <= -20){
+			collection.set(0);
+		}
+		
+		
+		//compressor.stop();
+		//honda.arcadeDrive(.6, 0);
 		//SmartDashboard.putNumber(
 		/*"Ultrasonic range: ", honda.getUltra());
 		//For playing recorded auto
@@ -280,6 +360,16 @@ public class Robot extends IterativeRobot implements Constants{
 	/**
 	 * This function is called periodically during operator control.
 	 */
+
+
+	@Override
+	public void testPeriodic() {
+		if(manip.getRawButtonPressed(2)) {
+			elevatorAuto();
+		}
+	}
+
+
 	@Override
 	public void teleopPeriodic() {
 
@@ -296,7 +386,7 @@ public class Robot extends IterativeRobot implements Constants{
 		SmartDashboard.putNumber("PSI: ", psense.getPSI());
 
 
-
+		
 		if(sam.getRawButton(1) || manip.getRawButton(1)) {
 			collection.set(-.4);
 			collector.set(true);
@@ -314,6 +404,8 @@ public class Robot extends IterativeRobot implements Constants{
 			collection.set(-Math.abs(manip.getRawAxis(0))/3);
 		}
 		
+
+
 		if((manip.getRawButton(5) || sam.getRawButton(6)) && pot.get() > .36) {
 			elevator.set(-.95);
 		} else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() < .955) { 
@@ -354,37 +446,36 @@ public class Robot extends IterativeRobot implements Constants{
 		} else {
 			ramps.set(DoubleSolenoid.Value.kReverse);
 		}
-		
-		
-		
-		
-		
+
+
+
+
+
 		if(manip.getRawAxis(3)<0 || sam.getRawAxis(3)<0) {
 			compressor.start();
 		} else {
 			compressor.stop();
 		}
 
-		
 
-		
+
+		/*
 		if(manip.getRawButtonPressed(9) && manip.getRawAxis(1) <.2 && manip.getRawAxis(1) > -.2) {
 			reversedDrive =false;
 		} else if (manip.getRawButtonPressed(11)) {
 			reversedDrive = true;
 		}
-		
+		 */
 
 		if (manip.getRawButton(8)){
 			collection.set(manip.getRawAxis(1));
 		} else {
 			if(!reversedDrive) {
-				honda.arcadeDrive(manip.getRawAxis(1), manip.getRawAxis(0));
-				
+				honda.arcadeDrive(manip.getRawAxis(1), manip.getRawAxis(0)); //manip.getRawAxis(0)
 			} else {
-				honda.arcadeDrive(-manip.getRawAxis(1), manip.getRawAxis(0));
+				honda.arcadeDrive(-manip.getRawAxis(1), manip.getRawAxis(0)); //manip.getRawAxis(0)
 			}
-			
+
 		}
 
 		//Update SmartDashboard values
@@ -429,16 +520,18 @@ public class Robot extends IterativeRobot implements Constants{
 			recording = false;
 		}
 		//PLAYBACK
-		if(manip.getRawButtonPressed(1)){
-			playing = true;
-		}
-		//RESET ARRAYS
+		/*
 		if(manip.getRawButtonPressed(8)){
+			playing = false;
+		}
+		*/
+		//RESET ARRAYS
+		if(manip.getRawButtonPressed(10)){
 			movementLinear.clear();
 			movementRotate.clear();
 		}
 		//SAVING
-		if(manip.getRawButtonPressed(11)){
+		if(manip.getRawButtonPressed(12)){
 			recording = false;
 			saving = true;
 			try {
@@ -458,7 +551,7 @@ public class Robot extends IterativeRobot implements Constants{
 		}
 		saving = false;
 		//LOADING
-		if(manip.getRawButtonPressed(12)){
+		if(manip.getRawButtonPressed(11)){
 			recording = false;
 			movementLinear.clear();
 			movementRotate.clear();
@@ -477,30 +570,25 @@ public class Robot extends IterativeRobot implements Constants{
 		if(recording){
 			movementLinear.add(manip.getRawAxis(1));
 			movementRotate.add(manip.getRawAxis(0));
+			//movementCol.add()
 		}
-
+		
+		
 		//For playing recorded auto
 		SmartDashboard.putBoolean("Playing back: ", playing);
-		if(playing){
-			if(play_counter <= movementLinear.size() - 1) {
-				honda.arcadeDrive(movementLinear.get(play_counter), movementRotate.get(play_counter));
-				play_counter++;
-			} else {
-				playing = false;
-				play_counter = 0;
-			}
-		}
+		
+
+
 
 
 	}
 
 	public boolean elevatorTo(double degrees){
-		double wiggle = 0.25;
-		if(pot.get() > degrees+wiggle){
-			//elevator.set(-.5);
-		} else if (pot.get() < degrees-wiggle){
-			//elevator.set(.5);
+		
+		if (pot.get() > degrees) {
+			elevator.set(-1);
 		} else {
+			elevator.set(-.154);
 			return true;
 		}
 		return false;
@@ -525,21 +613,9 @@ public class Robot extends IterativeRobot implements Constants{
 	}
 
 	public void elevatorAuto() {
-		int hingeTimer = 30;
-		while(!elevatorTo(top)) {
-			hingeTimer--;
-			if(hingeTimer > 0) {
-				hinge.set(-1);
-			} else {
-				hinge.set(0);
-			}
-		}
-		int shootingTimer = 60;
-		while(shootingTimer > 0) {
-			shootingTimer--;
-			collection.set(.4);
-		}
-		collection.set(0);
+		elevatorTo(.38); //.36
+		pooptimer = 40;
+
 	}
 
 	/*

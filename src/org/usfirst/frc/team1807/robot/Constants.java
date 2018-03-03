@@ -14,8 +14,8 @@ public interface Constants {
 	public static int RIGHTSOURCEB = 1;
 	
 	//Strings
-	public static final String NEW_RECORDING_NAME = "test";
-	public static final String SAVED_NAME = "test";
+	public static final String NEW_RECORDING_NAME = "rr";
+	public static final String SAVED_NAME = "rr";
 	public static final String recordingAuto = "Teleop Recorded";
 	public static final String leftAuto = "Left";
 	public static final String rightAuto = "Right";
