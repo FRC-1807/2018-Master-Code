@@ -3,15 +3,15 @@ package org.usfirst.frc.team1807.robot;
 public interface Constants {
 	
 	//PWM Ports
-	public static int LF = 7;
-	public static int LB = 8;
-	public static int RB = 9;
-	public static int RF = 10;
+	public static int LF = 2;
+	public static int LB = 3;
+	public static int RB = 1;
+	public static int RF = 0;
 	public static int ELEVATOR = 5;
-	public static int LEFTSOURCEA = 1;
+	public static int LEFTSOURCEA = 3;
 	public static int LEFTSOURCEB = 2;
-	public static int RIGHTSOURCEA = 3;
-	public static int RIGHTSOURCEB = 4;
+	public static int RIGHTSOURCEA = 0;
+	public static int RIGHTSOURCEB = 1;
 	
 	//Strings
 	public static final String NEW_RECORDING_NAME = "test";
@@ -30,7 +30,7 @@ public interface Constants {
 	public static int COMPRESSOR_CAN = 0;
 	
 	//Analog ports
-	public static int A_PSENSE = 0;
+	public static int A_PSENSE = 3;
 	public static int A_POT = 1;
 	
 	//Degrees and lengths

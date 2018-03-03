@@ -9,14 +9,14 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 public class Honda extends DifferentialDrive{
 	
-	private Ultrasonic front;
+	//private Ultrasonic front;
 	private boolean reversed;
 	
 	public Honda(SpeedController leftFrontMotor, SpeedController leftBackMotor, SpeedController rightFrontMotor, SpeedController rightBackMotor) {
 		super(new SpeedControllerGroup(leftFrontMotor, leftBackMotor), new SpeedControllerGroup(rightFrontMotor, rightBackMotor));
 	}
 	
-	public void setUltra(Ultrasonic frontOfBotUltra){
+	/*public void setUltra(Ultrasonic frontOfBotUltra){
 		front = frontOfBotUltra;
 	}
 	
@@ -26,9 +26,10 @@ public class Honda extends DifferentialDrive{
 	
 	public double getUltra(){
 		return front.getRangeInches();
-	}
+	}*/
 	
 	public void odyssey(Joystick joy){
+		reversed=true;
 		if(reversed){
 			arcadeDrive(-joy.getRawAxis(1), joy.getRawAxis(0));
 		} else {
