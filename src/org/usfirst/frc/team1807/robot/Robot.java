@@ -168,8 +168,8 @@ public class Robot extends IterativeRobot implements Constants{
 		movementLinear.clear();
 		movementRotate.clear();
 		try {
-			FileInputStream readfilelin = new FileInputStream("/home/lvuser/lin" + SAVED_NAME + ".ser");
-			FileInputStream readfilerot = new FileInputStream("/home/lvuser/rot" + SAVED_NAME + ".ser");
+			FileInputStream readfilelin = new FileInputStream("/home/lvuser/linrr.ser");
+			FileInputStream readfilerot = new FileInputStream("/home/lvuser/rotrr.ser");
 			ObjectInputStream in = new ObjectInputStream(readfilelin);
 			movementLinear = (ArrayList<Double>) in.readObject();
 			in = new ObjectInputStream(readfilerot);
