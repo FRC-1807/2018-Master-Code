@@ -14,14 +14,9 @@ public interface Constants {
 	public static int RIGHTSOURCEB = 1;
 	
 	//Strings
-	public static final String NEW_RECORDING_NAME = "rr";
-	public static final String SAVED_NAME = "rr";
-	public static final String recordingAuto = "Teleop Recorded";
 	public static final String leftAuto = "Left";
 	public static final String rightAuto = "Right";
-	public static final String centerAuto = "Center";
-	public static final String doLine = "Cross Line";
-	public static final String noLine = "No Line";
+	public static final String centerAuto = "Far Left/Right";
 	public static final String DONTMOVE = "Don't fucking move";
 	
 	//

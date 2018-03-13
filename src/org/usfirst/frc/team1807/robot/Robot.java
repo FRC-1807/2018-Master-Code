@@ -36,21 +36,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The main, what will be finalized code for the 2018 FIRST Power Up Game.
- * @author - Joey, Peter and Friends
- * @since - we been stunting on niggas
  */
 public class Robot extends IterativeRobot implements Constants{
 
 	private SendableChooser<String> chooser;
-	SendableChooser<String> lineChooser;
 	private String autoSelected;
 	private String gameData;
-	char position;
-	String auto;
 
 	ArrayList<Double> movementLinear = new ArrayList<Double>();
 	ArrayList<Double> movementRotate = new ArrayList<Double>();
-	ArrayList<Double> movementCol = new ArrayList<Double>();
 	boolean recording;
 	boolean playing;
 	boolean saving;
@@ -71,7 +65,6 @@ public class Robot extends IterativeRobot implements Constants{
 	Talon collection;
 	Talon hinge;
 
-
 	Compressor compressor;
 	Solenoid collector;
 	PressureSensor psense;
@@ -87,17 +80,21 @@ public class Robot extends IterativeRobot implements Constants{
 	DoubleSolenoid rightRamp = new DoubleSolenoid(6, 7);
 
 	DoubleSolenoid ramps = new DoubleSolenoid (2,3);
-
 	Joystick sam = new Joystick(1);
-
 	boolean leftrampup = false;
 	boolean rightrampup = false;
-
 	boolean reversedDrive = false;
-	
 	boolean poopstart = false;
-	
 	int pooptimer = 0;
+	boolean leftScale = false;
+	boolean rightScale = false;
+	boolean leftFarSwitch = false;
+	boolean leftCloseSwitch = false;
+	boolean rightFarSwitch = false;
+	boolean rightCloseSwitch = false;
+	boolean doSwitch = false;
+	boolean doAuto = true;
+	char ourSide;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -105,18 +102,13 @@ public class Robot extends IterativeRobot implements Constants{
 	 */
 	@Override
 	public void robotInit() {
-		
-		
 
 		//Adds choices to SmartDashboard
 		chooser = new SendableChooser<>();
-		chooser.addDefault("Center", centerAuto);
+		chooser.addDefault("Far Left/Right", centerAuto);
 		chooser.addObject("Right", rightAuto);
 		chooser.addObject("Left", leftAuto);
 		chooser.addObject("Dont fucking move", DONTMOVE);
-		lineChooser = new SendableChooser<>();
-		lineChooser.addDefault("Cross Line", doLine);
-		lineChooser.addObject("No Line", noLine);
 
 		//Joysticks and other controllers
 		manip = new Joystick(manipPort);
@@ -134,7 +126,6 @@ public class Robot extends IterativeRobot implements Constants{
 		SpeedControllerGroup rightDrive = new SpeedControllerGroup(rightFront, rightBack);
 		honda = new DifferentialDrive(leftDrive, rightDrive);
 		collection = new Talon(6);
-
 
 		//Pneumatics and sensors
 		compressor = new Compressor(COMPRESSOR_CAN);
@@ -157,14 +148,13 @@ public class Robot extends IterativeRobot implements Constants{
 
 		movementLinear = new ArrayList<Double>();
 		movementRotate = new ArrayList<Double>();
-		movementCol = new ArrayList<Double>();
 
 		honda.setMaxOutput(.6);
 		compressor.stop();
 
 		leftrampup=false;
 		rightrampup=false;
-		
+
 		honda.setSafetyEnabled(false);
 
 	}
@@ -187,81 +177,49 @@ public class Robot extends IterativeRobot implements Constants{
 		} catch (Exception i){
 			i.printStackTrace();
 		}
-		
+
 		compressor.stop();
 		pooptimer=0;
-		
+
 		recording = false;
 		//playing = false;
 		saving = false;
 		poopstart=false;
 		//elevatorAuto();
-		
+
 		playing=true;
 		collection.set(0);
-		
-		/*auto = "amogh";
+
 		autoSelected = chooser.getSelected();
-		String lineSelected = lineChooser.getSelected(); 
 		gameData = DriverStation.getInstance().getGameSpecificMessage().toUpperCase();
-		position = gameData.charAt(0);
 		playing = false;
 		play_counter = 0;
-
-		if(lineSelected == doLine) {
-			crossLine = true;
-			playing = false;
-		} else {
-			crossLine = false;
-			playing = true;
-		}
-
-		if(autoSelected == DONTMOVE) {
-			playing = false;
-		} else if(crossLine) {
-			playing = true;
-			auto = "cross_line";
-		}
-		//Left auto
-		else if(autoSelected == leftAuto) {
-			if(position == 'L'){
-				auto = "left_switch_left";
-			} else {
-				auto = "left_switch_right";
-			}
-			//Right auto
-		} else if(autoSelected == rightAuto) {
-			if(position == 'L'){
-				auto = "right_switch_left";
-			} else {
-				auto = "right_switch_right";
-			}
-			//Center auto
-		} else if(autoSelected == centerAuto) {
-			if(position == 'L'){
-				auto = "center_switch_left";
-			} else {
-				auto = "center_switch_right";
-			}
-			//Error catcher
-		} else {
-			System.out.println("Failed to choose auto position");
-			playing = false;
-		}
+		doAuto = true;
 
 		try {
-			FileInputStream readfilelin = new FileInputStream("/home/lvuser/lin" + auto + ".ser");
-			FileInputStream readfilerot = new FileInputStream("/home/lvuser/rot" + auto + ".ser");
+			FileInputStream readfilelin = new FileInputStream("/home/lvuser/linrr.ser");
+			FileInputStream readfilerot = new FileInputStream("/home/lvuser/rotrr.ser");
 			ObjectInputStream in = new ObjectInputStream(readfilelin);
 			movementLinear = (ArrayList<Double>) in.readObject();
 			in = new ObjectInputStream(readfilerot);
 			movementRotate = (ArrayList<Double>) in.readObject();
 		} catch (Exception i){
 			i.printStackTrace();
-		}*/
-
-		//driveTo(1950, 0.4);
-
+		}
+		
+		if(autoSelected == leftAuto){
+			if(gameData.charAt(0) == 'L'){
+				doSwitch = true;
+			}
+		} else if(autoSelected == rightAuto){
+			if(gameData.charAt(0) == 'R'){
+				doSwitch = true;
+			}
+		} else if(autoSelected == centerAuto){
+			doSwitch = false;
+		} else {
+			doAuto = false;
+		}
 	}
 
 	/**
@@ -273,10 +231,16 @@ public class Robot extends IterativeRobot implements Constants{
 
 	@Override
 	public void autonomousPeriodic() {
+		
+		SmartDashboard.putBoolean("leftScale", leftScale);
+		SmartDashboard.putBoolean("rightScale", rightScale);
+		SmartDashboard.putBoolean("leftFarSwitch", leftFarSwitch);
+		SmartDashboard.putBoolean("rightFarSwitch", rightFarSwitch);
+		SmartDashboard.putBoolean("leftCloseSwitch", leftCloseSwitch);
+		SmartDashboard.putBoolean("rightCloseSwitch", rightCloseSwitch);
+		
+		SmartDashboard.putNumber("Potentiometer: ", pot.get());
 
-		
-		SmartDashboard.putNumber("pottttt: ", pot.get());
-		
 		if(playing){
 			if(play_counter <= movementLinear.size() - 1) {
 				honda.arcadeDrive(movementLinear.get(play_counter), 0);
@@ -286,7 +250,7 @@ public class Robot extends IterativeRobot implements Constants{
 				play_counter = 0;
 			}
 		} else {
-			
+
 			if(!poopstart) {
 				elevatorTo(.36);
 				if(elevatorTo(.36)) {
@@ -295,8 +259,8 @@ public class Robot extends IterativeRobot implements Constants{
 				}
 			}
 		}
-		
-		
+
+
 		if(pooptimer > 0) {
 			if(pooptimer==1) {
 				pooptimer=-3;
@@ -306,8 +270,8 @@ public class Robot extends IterativeRobot implements Constants{
 			leftBack.set(-.3);
 			rightFront.set(.3);
 			rightBack.set(.3);
-			
-		} else if (pooptimer<0 && pooptimer >-30){
+
+		} else if (pooptimer<0 && pooptimer >-30 && doSwitch){
 			pooptimer--;
 			collection.set(.25);
 			leftFront.set(0);
@@ -317,8 +281,8 @@ public class Robot extends IterativeRobot implements Constants{
 		} else if (pooptimer <= -20){
 			collection.set(0);
 		}
-		
-		
+
+
 		//compressor.stop();
 		//honda.arcadeDrive(.6, 0);
 		//SmartDashboard.putNumber(
@@ -386,7 +350,7 @@ public class Robot extends IterativeRobot implements Constants{
 		SmartDashboard.putNumber("PSI: ", psense.getPSI());
 
 
-		
+
 		if(sam.getRawButton(1) || manip.getRawButton(1)) {
 			collection.set(-.4);
 			collector.set(true);
@@ -403,7 +367,7 @@ public class Robot extends IterativeRobot implements Constants{
 			}
 			collection.set(-Math.abs(manip.getRawAxis(0))/3);
 		}
-		
+
 
 
 		if((manip.getRawButton(5) || sam.getRawButton(6)) && pot.get() > .36) {
@@ -478,15 +442,6 @@ public class Robot extends IterativeRobot implements Constants{
 
 		}
 
-		//Update SmartDashboard values
-		SmartDashboard.putBoolean("Recording: ", recording);
-		SmartDashboard.putBoolean("Saving: ", saving);
-		SmartDashboard.putNumber("Potty: ", pot.get());
-		//SmartDashboard.putNumber("Left: ", leftEnc.get());
-		//SmartDashboard.putNumber("Right: ", rightEnc.get());
-		//SmartDashboard.putNumber("Gyroscope: ", gyro.getAngle());
-
-
 
 		/*
 		if(manip.getRawButtonPressed(5)) {
@@ -508,7 +463,6 @@ public class Robot extends IterativeRobot implements Constants{
 			}
 			elevatorTo(.88);
 		}
-		 */
 
 
 		//RECORDING
@@ -520,11 +474,10 @@ public class Robot extends IterativeRobot implements Constants{
 			recording = false;
 		}
 		//PLAYBACK
-		/*
 		if(manip.getRawButtonPressed(8)){
 			playing = false;
 		}
-		*/
+		 
 		//RESET ARRAYS
 		if(manip.getRawButtonPressed(10)){
 			movementLinear.clear();
@@ -570,21 +523,12 @@ public class Robot extends IterativeRobot implements Constants{
 		if(recording){
 			movementLinear.add(manip.getRawAxis(1));
 			movementRotate.add(manip.getRawAxis(0));
-			//movementCol.add()
-		}
-		
-		
-		//For playing recorded auto
-		SmartDashboard.putBoolean("Playing back: ", playing);
-		
-
-
-
+		}*/
 
 	}
 
 	public boolean elevatorTo(double degrees){
-		
+
 		if (pot.get() > degrees) {
 			elevator.set(-1);
 		} else {
@@ -594,48 +538,10 @@ public class Robot extends IterativeRobot implements Constants{
 		return false;
 	}
 
-
-	public boolean driveTo(double distanceInches, double speed){
-		double wiggle = 10;
-		leftEnc.reset();
-		rightEnc.reset();
-		double average = (leftEnc.getDistance() + rightEnc.getDistance())/2;
-		while(average < distanceInches-wiggle || average > distanceInches+wiggle){
-			average = (leftEnc.getDistance() + rightEnc.getDistance())/2;
-			if(average < distanceInches-wiggle){
-				honda.arcadeDrive(-speed, 0);
-			} else {
-				honda.arcadeDrive(speed, 0);
-			}
-		}
-		honda.stopMotor();
-		return true;
-	}
-
 	public void elevatorAuto() {
 		elevatorTo(.38); //.36
 		pooptimer = 40;
 
 	}
 
-	/*
-	public boolean turnTo(double degrees){
-		double wiggle = 3;
-		double angle = 0;
-		if(degrees < 0){
-			honda.setReversed(true);
-		}
-		while(angle < degrees-wiggle || angle > degrees+wiggle){
-			angle = gyro.getAngle();
-			if(angle > degrees+wiggle) {
-				honda.odyssey(0, -0.25);
-			} else if (angle < degrees-wiggle){
-				honda.odyssey(0, 0.25);
-			}
-		}
-		honda.stopMotor();
-		honda.setReversed(false);
-		return true;
-	}
-	 */
 }
