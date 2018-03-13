@@ -360,7 +360,7 @@ public class Robot extends IterativeRobot implements Constants{
 			collection.set(-.5);
 		} else {
 			collector.set(false);
-			if(Math.abs(manip.getRawAxis(0)) > -.2 || Math.abs(manip.getRawAxis(0)) < .2){
+			if(Math.abs(manip.getRawAxis(0)) > -.11 || Math.abs(manip.getRawAxis(0)) < .11){
 				collection.set(-Math.abs(manip.getRawAxis(0)));
 			} else {
 				collection.set(-.2);
@@ -372,7 +372,7 @@ public class Robot extends IterativeRobot implements Constants{
 
 		if((manip.getRawButton(5) || sam.getRawButton(6)) && pot.get() > .36) {
 			elevator.set(-.95);
-		} else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() < .955) { 
+		} else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() < .969) { 
 			elevator.set(.85);
 		} else {
 			elevator.set(-.154);
