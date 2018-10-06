@@ -57,6 +57,7 @@ public class Robot extends IterativeRobot implements Constants{
 	Joystick samIsUseless;
 
 	Talon elevator;
+	Talon elevatortwo;
 	Talon leftFront;
 	Talon leftBack;
 	Talon rightFront;
@@ -81,8 +82,6 @@ public class Robot extends IterativeRobot implements Constants{
 
 	DoubleSolenoid ramps = new DoubleSolenoid (2,3);
 	Joystick sam = new Joystick(1);
-	boolean leftrampup = false;
-	boolean rightrampup = false;
 	boolean reversedDrive = false;
 	boolean poopstart = false;
 	int pooptimer = 0;
@@ -94,6 +93,11 @@ public class Robot extends IterativeRobot implements Constants{
 	boolean rightCloseSwitch = false;
 	boolean doSwitch = false;
 	boolean doAuto = true;
+	
+	
+	boolean lastpressed = false;
+	boolean stopStutter = false;
+	
 	char ourSide;
 
 	/**
@@ -118,6 +122,7 @@ public class Robot extends IterativeRobot implements Constants{
 
 		//Motor controllers
 		elevator = new Talon(9);
+		elevatortwo = new Talon(7);
 		leftFront = new Talon(LF);
 		leftBack = new Talon(LB);
 		rightFront = new Talon(RF);
@@ -149,11 +154,10 @@ public class Robot extends IterativeRobot implements Constants{
 		movementLinear = new ArrayList<Double>();
 		movementRotate = new ArrayList<Double>();
 
-		honda.setMaxOutput(.6);
+		honda.setMaxOutput(.8);
 		compressor.stop();
 
-		leftrampup=false;
-		rightrampup=false;
+		
 
 		honda.setSafetyEnabled(false);
 
@@ -164,6 +168,7 @@ public class Robot extends IterativeRobot implements Constants{
 	 */
 	@Override
 	public void autonomousInit() {
+		honda.setMaxOutput(.6);
 		
 		movementLinear.clear();
 		movementRotate.clear();
@@ -192,7 +197,6 @@ public class Robot extends IterativeRobot implements Constants{
 
 		autoSelected = chooser.getSelected();
 		gameData = DriverStation.getInstance().getGameSpecificMessage().toUpperCase();
-		playing = false;
 		play_counter = 0;
 		doAuto = true;
 
@@ -207,6 +211,8 @@ public class Robot extends IterativeRobot implements Constants{
 			i.printStackTrace();
 		}
 		
+		
+		/*
 		if(autoSelected == leftAuto){
 			if(gameData.charAt(0) == 'L'){
 				doSwitch = true;
@@ -220,6 +226,11 @@ public class Robot extends IterativeRobot implements Constants{
 		} else {
 			doAuto = false;
 		}
+		*/
+		
+		//now do
+		
+		//doAuto = true;
 	}
 
 	/**
@@ -249,7 +260,9 @@ public class Robot extends IterativeRobot implements Constants{
 				playing = false;
 				play_counter = 0;
 			}
-		} else {
+		} 
+		/*
+		else {
 
 			if(!poopstart) {
 				elevatorTo(.36);
@@ -282,6 +295,7 @@ public class Robot extends IterativeRobot implements Constants{
 			collection.set(0);
 		}
 
+		*/
 
 		//compressor.stop();
 		//honda.arcadeDrive(.6, 0);
@@ -336,7 +350,7 @@ public class Robot extends IterativeRobot implements Constants{
 
 	@Override
 	public void teleopPeriodic() {
-
+		honda.setMaxOutput(.8);
 		/*
 		if(manip.getRawButton(4)) {
 			leftEnc.reset();
@@ -348,6 +362,7 @@ public class Robot extends IterativeRobot implements Constants{
 
 
 		SmartDashboard.putNumber("PSI: ", psense.getPSI());
+		SmartDashboard.putNumber("pent: ", pot.get());
 
 
 
@@ -356,32 +371,93 @@ public class Robot extends IterativeRobot implements Constants{
 			collector.set(true);
 		} else if(sam.getRawButton(5) || manip.getRawButton(6)) {
 			collection.set(.5);
-		} else if (sam.getRawButton(3) || manip.getRawButton(4)) {
+		} else if (manip.getRawButton(7)) {
+			collection.set(.85);
+		}
+		else if (sam.getRawButton(3) || manip.getRawButton(4)) {
 			collection.set(-.5);
 		} else {
 			collector.set(false);
-			if(Math.abs(manip.getRawAxis(0)) > -.11 || Math.abs(manip.getRawAxis(0)) < .11){
-				collection.set(-Math.abs(manip.getRawAxis(0)));
-			} else {
+			/*
+			if ( pot.get() < .7) {
+				collection.set(0);
+			}
+			else 
+			*/
+			if(manip.getRawAxis(1) > .1) {
+				collection.set(-manip.getRawAxis(1)/3);
+			}
+			else if((Math.abs(manip.getRawAxis(0)) > -.11 || Math.abs(manip.getRawAxis(0)) < .11)){
+				collection.set(-Math.abs(manip.getRawAxis(0))/1.7);
+			}
+			else {
 				collection.set(-.2);
 			}
-			collection.set(-Math.abs(manip.getRawAxis(0))/3);
 		}
 
 
 
-		if((manip.getRawButton(5) || sam.getRawButton(6)) && pot.get() > .36) {
-			elevator.set(-.95);
-		} else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() < .969) { 
-			elevator.set(.85);
+			//ELEVATOR
+		
+		
+		
+		
+		if(pot.get() <= .368 && manip.getRawButton(5))
+		{
+			stopStutter = true;
+		}
+		else if (stopStutter && !manip.getRawButton(5))
+		{
+			stopStutter = false;
+		}
+		
+		if ((manip.getRawButton(5) || sam.getRawButton(6)) && pot.get() > .58-.155) 
+		{
+			elevator.set(1);
+			elevatortwo.set(1);
+		}
+		else if ((manip.getRawButton(5) || sam.getRawButton(6)) && pot.get() > .5-.155 && !stopStutter) 
+		{
+			elevator.set(.5);
+			elevatortwo.set(.5);
+		}
+		else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() >= .85-.155 && pot.get() < .82) 
+		{ 
+			//really slow
+			elevator.set(-.14);
+			elevatortwo.set(-.14);
+		}
+		else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() <= .85-.155 && pot.get() > .58-.155) {
+			elevator.set(-.55);
+			elevatortwo.set(-.55);
+		}
+		else if ((manip.getRawButton(3) || sam.getRawButton(4)) && pot.get() <= .58-.155) {
+			elevator.set(-.3);
+			elevatortwo.set(-.3);
+		}
+		else 
+		{
+			elevator.set(.18);
+			elevatortwo.set(.18);
+		}
+		
+		if(manip.getRawButton(5) || sam.getRawButton(6)) {
+			lastpressed = true;
 		} else {
-			elevator.set(-.154);
+			lastpressed = false;
 		}
+			
+		
+		
+		//ENDHERE
+		
+		//elevator.set(manip.getRawAxis(1));
+		//elevatortwo.set(manip.getRawAxis(1));
 
 
 
 
-
+		/*
 		if(sam.getRawButton(10)) {
 			leftrampup=true;
 			leftRamp.set(DoubleSolenoid.Value.kForward);
@@ -410,6 +486,7 @@ public class Robot extends IterativeRobot implements Constants{
 		} else {
 			ramps.set(DoubleSolenoid.Value.kReverse);
 		}
+		*/
 
 
 
@@ -431,17 +508,18 @@ public class Robot extends IterativeRobot implements Constants{
 		}
 		 */
 
-		if (manip.getRawButton(8)){
-			collection.set(manip.getRawAxis(1));
-		} else {
-			if(!reversedDrive) {
-				honda.arcadeDrive(manip.getRawAxis(1), manip.getRawAxis(0)); //manip.getRawAxis(0)
-			} else {
-				honda.arcadeDrive(-manip.getRawAxis(1), manip.getRawAxis(0)); //manip.getRawAxis(0)
-			}
+		//MOVEMENT
+		
+		
+	
+		
 
-		}
-
+		honda.arcadeDrive(manip.getRawAxis(1), manip.getRawAxis(0)/1.2);
+			
+		
+		
+		
+		
 
 		/*
 		if(manip.getRawButtonPressed(5)) {
@@ -530,9 +608,9 @@ public class Robot extends IterativeRobot implements Constants{
 	public boolean elevatorTo(double degrees){
 
 		if (pot.get() > degrees) {
-			elevator.set(-1);
+			elevator.set(.8);
 		} else {
-			elevator.set(-.154);
+			elevator.set(.18);
 			return true;
 		}
 		return false;
