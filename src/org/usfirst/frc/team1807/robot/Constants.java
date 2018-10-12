@@ -17,7 +17,7 @@ public interface Constants {
 	public static final String leftAuto = "Left";
 	public static final String rightAuto = "Right";
 	public static final String centerAuto = "Far Left/Right";
-	public static final String DONTMOVE = "Don't fucking move";
+	public static final String DONTMOVE = "Don't move";
 	
 	//
 	public static int manipPort = 0;
