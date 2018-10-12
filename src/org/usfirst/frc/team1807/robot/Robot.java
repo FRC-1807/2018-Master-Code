@@ -83,8 +83,8 @@ public class Robot extends IterativeRobot implements Constants{
 	DoubleSolenoid ramps = new DoubleSolenoid (2,3);
 	Joystick sam = new Joystick(1);
 	boolean reversedDrive = false;
-	boolean poopstart = false;
-	int pooptimer = 0;
+	boolean AutoStart = false;
+	int AutoTimer = 0;
 	boolean leftScale = false;
 	boolean rightScale = false;
 	boolean leftFarSwitch = false;
@@ -112,7 +112,7 @@ public class Robot extends IterativeRobot implements Constants{
 		chooser.addDefault("Far Left/Right", centerAuto);
 		chooser.addObject("Right", rightAuto);
 		chooser.addObject("Left", leftAuto);
-		chooser.addObject("Dont fucking move", DONTMOVE);
+		chooser.addObject("Dont move", DONTMOVE);
 
 		//Joysticks and other controllers
 		manip = new Joystick(manipPort);
@@ -157,10 +157,7 @@ public class Robot extends IterativeRobot implements Constants{
 		honda.setMaxOutput(.8);
 		compressor.stop();
 
-		
-
 		honda.setSafetyEnabled(false);
-
 	}
 
 	/**
@@ -184,12 +181,12 @@ public class Robot extends IterativeRobot implements Constants{
 		}
 
 		compressor.stop();
-		pooptimer=0;
+		AutoTimer=0;
 
 		recording = false;
 		//playing = false;
 		saving = false;
-		poopstart=false;
+		AutoStart=false;
 		//elevatorAuto();
 
 		playing=true;
@@ -264,34 +261,34 @@ public class Robot extends IterativeRobot implements Constants{
 		/*
 		else {
 
-			if(!poopstart) {
+			if(!AutoStart) {
 				elevatorTo(.36);
 				if(elevatorTo(.36)) {
-					poopstart = true;
-					pooptimer=40;
+					AutoStart = true;
+					AutoTimer=40;
 				}
 			}
 		}
 
 
-		if(pooptimer > 0) {
-			if(pooptimer==1) {
-				pooptimer=-3;
+		if(AutoTimer > 0) {
+			if(AutoTimer==1) {
+				AutoTimer=-3;
 			}
-			pooptimer--;
+			AutoTimer--;
 			leftFront.set(-.3);
 			leftBack.set(-.3);
 			rightFront.set(.3);
 			rightBack.set(.3);
 
-		} else if (pooptimer<0 && pooptimer >-30 && doSwitch){
-			pooptimer--;
+		} else if (AutoTimer<0 && AutoTimer >-30 && doSwitch){
+			AutoTimer--;
 			collection.set(.25);
 			leftFront.set(0);
 			leftBack.set(0);
 			rightFront.set(0);
 			rightBack.set(0);
-		} else if (pooptimer <= -20){
+		} else if (AutoTimer <= -20){
 			collection.set(0);
 		}
 
@@ -618,7 +615,7 @@ public class Robot extends IterativeRobot implements Constants{
 
 	public void elevatorAuto() {
 		elevatorTo(.38); //.36
-		pooptimer = 40;
+		AutoTimer = 40;
 
 	}
 
